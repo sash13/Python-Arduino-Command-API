@@ -110,6 +110,7 @@ class Arduino(object):
         self.sr = sr
         self.SoftwareSerial = SoftwareSerial(self)
         self.Servos = Servos(self)
+        self.Stepper = Stepper(self)
 
     def version(self):
         return get_version(self.sr)
@@ -423,6 +424,45 @@ class Wires(object):
         self.board = board
         self.sr = board.sr
 
+class Stepper(object):
+
+    """
+    Class for Arduino stepper support
+    """
+
+    def __init__(self, board):
+        self.board = board
+        self.sr = board.sr
+        self.stepper_pos = {}
+
+    def attach(self, steps, pin1=0, pin2=0, pin3=0, pin4=0):
+        cmd_str = build_cmd_str("spit", (steps, pin1, pin2, pin3, pin4))
+        while True:
+            self.sr.write(cmd_str)
+            self.sr.flush()
+
+            rd = self.sr.readline().replace("\r\n", "")
+            if rd:
+                break
+            else:
+                log.debug("trying to attach servo to pin {0}".format(pin1))
+        position = int(rd)
+        self.stepper_pos[pin1] = position
+        return 1
+
+    def step(self, pin, steps):
+        position = self.stepper_pos[pin]
+        cmd_str = build_cmd_str("spsp", (position, steps))
+
+        self.sr.write(cmd_str)
+        self.sr.flush()
+
+    def speed(self, pin, speed):
+        position = self.stepper_pos[pin]
+        cmd_str = build_cmd_str("spsd", (position, speed))
+
+        self.sr.write(cmd_str)
+        self.sr.flush()
 
 class Servos(object):
 

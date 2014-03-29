@@ -1,10 +1,14 @@
 #include <SoftwareSerial.h>
 #include <Wire.h>
 #include <Servo.h>
+#include <Stepper.h>
 
 SoftwareSerial *sserial = NULL;
 Servo servos[8];
+Stepper steppers[4];
+
 int servo_pins[] = {0, 0, 0, 0, 0, 0, 0, 0};
+int stepper_pins[] = {0, 0, 0, 0};
 boolean connected = false;
 
 int Str2int (String Str_value)
@@ -301,6 +305,56 @@ void SV_write_ms(String data) {
     servos[pos].writeMicroseconds(uS);
 }
 
+void SP_init(String data) {
+    String sdata[5];
+    split(sdata,5,data,'%');
+    int steps = Str2int(sdata[0]);
+    int pin1 = Str2int(sdata[1]);
+    int pin2 = Str2int(sdata[2]); 
+    int pin3 = Str2int(sdata[3]);
+    int pin4 = Str2int(sdata[4]); 
+    /*int pos = -1;
+    for (int i = 0; i<4;i++) {
+        if (stepper_pins[i] == pin1) { //reset in place
+            if(pin4>0)
+                steppers[pos].attach(steps, pin1, pin2, pin3, pin4);
+            else
+                steppers[pos].attach(steps, pin1, pin2);
+            stepper_pins[pos] = pin1;
+            Serial.println(pos);
+            return;
+            }
+        }
+    for (int i = 0; i<4;i++) {
+        if (servo_pins[i] == 0) {pos = i;break;} // find spot in stepper array
+        }
+    if (pos == -1) {;} //no array position available!
+    else {*/
+    int pos=1;
+        if(pin4>0)
+            steppers[pos].attach(steps, pin1, pin2, pin3, pin4);
+        else
+            steppers[pos].attach(steps, pin1, pin2);
+        stepper_pins[pos] = pin1;
+        Serial.println(pos);
+        //}  
+}
+
+void SP_speed(String data) {
+    String sdata[2];
+    split(sdata,2,data,'%');
+    int pos = Str2int(sdata[0]);
+    int speed = Str2int(sdata[1]);
+    steppers[pos].setSpeed(speed);
+}
+
+void SP_step(String data) {
+    String sdata[2];
+    split(sdata,2,data,'%');
+    int pos = Str2int(sdata[0]);
+    int steps = Str2int(sdata[1]);
+    steppers[pos].step(steps);
+}
 
 void SerialParser(void) {
   char readChar[64];
@@ -377,6 +431,15 @@ void SerialParser(void) {
   else if (cmd == "si") {
       shiftInHandler(data);
   }
+  else if (cmd == "spit") {
+      SP_init(data);   
+  } 
+  else if (cmd == "spsp") {
+      SP_step(data);   
+  }       
+  else if (cmd == "spsd") {
+      SP_speed(data);   
+  }       
 
 }
 

@@ -72,5 +72,20 @@ def LCD(tx, baud, ssbaud, message, port=""):
     while True:
         board.SoftwareSerial.write(" test ")
 
+def Stepper(baud, port, steps, pin1, pin2, pin3=0, pin4=0, speed=120):
+    """
+    Steps
+    """
+    board = Arduino(baud, port=port)
+    board.pinMode(13, "OUTPUT")
+    board.Stepper.attach(steps,pin1, pin2, pin3, pin4)
+    board.Stepper.speed(pin1, speed)
+    while True:
+        board.Stepper.step(pin1, steps)
+        time.sleep(1)
+        board.Stepper.step(pin1, -steps)
+        time.sleep(1)
+
 if __name__ == "__main__":
-    Blink(13, '9600')
+    #Blink(13, '9600')
+    Stepper('9600',"/dev/ttyUSB0", 100, 9, 10)
